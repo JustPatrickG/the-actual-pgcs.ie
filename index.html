@@ -41,9 +41,22 @@
           menuItems.forEach((item, i) => {
             setTimeout(() => item.classList.add('show'), i * 130);
           });
+          armSecretTap();
         }, 400);
       }, 300);
     });
+
+    // --- secret: double-tap the title once it's settled ---
+    function armSecretTap() {
+      let lastTap = 0;
+      title.addEventListener('click', () => {
+        const now = Date.now();
+        if (now - lastTap < 400) {
+          window.location.href = 'secret.html';
+        }
+        lastTap = now;
+      });
+    }
   </script>
 </body>
 </html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>runner — pgcs//arcade</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="arcade.css" />
+</head>
+<body class="arcade-body">
+  <div class="scanlines"></div>
+
+  <main class="game-shell">
+    <div class="game-topbar">
+      <a href="secret.html">&larr; arcade</a>
+      <span class="game-score">score: <span id="score">0</span></span>
+    </div>
+
+    <div class="game-canvas-wrap" id="wrap" style="aspect-ratio: 16 / 10;">
+      <canvas id="canvas"></canvas>
+      <div class="game-overlay" id="overlay">
+        <h2 id="overlayTitle">game over</h2>
+        <p id="overlaySub">score: 0</p>
+        <button class="restart-btn" id="restartBtn">restart</button>
+      </div>
+    </div>
+
+    <p class="game-hint">tap to jump</p>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wrap = document.getElementById('wrap');
+    const scoreEl = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySub = document.getElementById('overlaySub');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let W, H, dpr;
+    let player, obstacles, speed, score, alive, groundY, rafId, spawnTimer, elapsed;
+
+    function resize() {
+      const rect = wrap.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      W = rect.width;
+      H = rect.height;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      groundY = H - H * 0.16;
+    }
+
+    function reset() {
+      player = { x: W * 0.14, y: groundY - 20, w: 18, h: 20, vy: 0, jumping: false };
+      obstacles = [];
+      speed = 4.2;
+      score = 0;
+      alive = true;
+      elapsed = 0;
+      spawnTimer = 0;
+      scoreEl.textContent = '0';
+      overlay.classList.remove('show');
+      if (rafId) cancelAnimationFrame(rafId);
+      lastTime = performance.now();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function jump() {
+      if (!alive) return;
+      if (!player.jumping) {
+        player.vy = -9.5;
+        player.jumping = true;
+      }
+    }
+
+    let lastTime;
+    function tick(now) {
+      const dt = Math.min(32, now - lastTime) / 16.67;
+      lastTime = now;
+
+      if (alive) {
+        elapsed += dt;
+        score = Math.floor(elapsed * 2);
+        scoreEl.textContent = String(score);
+        speed = 4.2 + elapsed * 0.02;
+
+        player.vy += 0.55 * dt;
+        player.y += player.vy * dt;
+        const floorY = groundY - player.h;
+        if (player.y >= floorY) {
+          player.y = floorY;
+          player.vy = 0;
+          player.jumping = false;
+        }
+
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          const h = 18 + Math.random() * 22;
+          obstacles.push({ x: W + 10, y: groundY - h, w: 14 + Math.random() * 8, h });
+          spawnTimer = 45 + Math.random() * 35 - Math.min(30, elapsed * 0.3);
+        }
+
+        obstacles.forEach((o) => { o.x -= speed * dt; });
+        obstacles = obstacles.filter((o) => o.x + o.w > -10);
+
+        for (const o of obstacles) {
+          if (player.x < o.x + o.w && player.x + player.w > o.x &&
+              player.y < o.y + o.h && player.y + player.h > o.y) {
+            alive = false;
+            overlayTitle.textContent = 'game over';
+            overlaySub.textContent = 'score: ' + score;
+            overlay.classList.add('show');
+          }
+        }
+      }
+
+      draw();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function draw() {
+      ctx.fillStyle = '#030503';
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = '#123322';
+      ctx.beginPath();
+      ctx.moveTo(0, groundY + 0.5);
+      ctx.lineTo(W, groundY + 0.5);
+      ctx.stroke();
+
+      ctx.fillStyle = '#eafff2';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      ctx.fillStyle = '#3ddc84';
+      obstacles.forEach((o) => ctx.fillRect(o.x, o.y, o.w, o.h));
+    }
+
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+    canvas.addEventListener('mousedown', jump);
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === 'ArrowUp') jump();
+    });
+
+    restartBtn.addEventListener('click', reset);
+    window.addEventListener('resize', () => { resize(); });
+
+    resize();
+    reset();
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>snake — pgcs//arcade</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="arcade.css" />
+</head>
+<body class="arcade-body">
+  <div class="scanlines"></div>
+
+  <main class="game-shell">
+    <div class="game-topbar">
+      <a href="secret.html">&larr; arcade</a>
+      <span class="game-score">score: <span id="score">0</span></span>
+    </div>
+
+    <div class="game-canvas-wrap">
+      <canvas id="canvas"></canvas>
+      <div class="game-overlay" id="overlay">
+        <h2 id="overlayTitle">game over</h2>
+        <p id="overlaySub">score: 0</p>
+        <button class="restart-btn" id="restartBtn">restart</button>
+      </div>
+    </div>
+
+    <p class="game-hint">swipe to steer &middot; arrow keys on desktop</p>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySub = document.getElementById('overlaySub');
+    const restartBtn = document.getElementById('restartBtn');
+
+    const GRID = 16;
+    let cellSize, snake, dir, nextDir, food, score, alive, tickMs, loopHandle;
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const size = Math.floor(Math.min(rect.width, rect.height));
+      canvas.width = size * devicePixelRatio;
+      canvas.height = size * devicePixelRatio;
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      cellSize = size / GRID;
+      draw();
+    }
+
+    function randomFood() {
+      let pos;
+      do {
+        pos = { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) };
+      } while (snake.some((s) => s.x === pos.x && s.y === pos.y));
+      return pos;
+    }
+
+    function reset() {
+      snake = [{ x: 7, y: 8 }, { x: 6, y: 8 }, { x: 5, y: 8 }];
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      food = randomFood();
+      score = 0;
+      alive = true;
+      tickMs = 140;
+      scoreEl.textContent = '0';
+      overlay.classList.remove('show');
+      if (loopHandle) clearTimeout(loopHandle);
+      loop();
+    }
+
+    function setDir(x, y) {
+      if (dir.x === -x && dir.y === -y) return; // no reversing
+      nextDir = { x, y };
+    }
+
+    function step() {
+      dir = nextDir;
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      if (head.x < 0 || head.x >= GRID || head.y < 0 || head.y >= GRID ||
+          snake.some((s) => s.x === head.x && s.y === head.y)) {
+        alive = false;
+        overlayTitle.textContent = 'game over';
+        overlaySub.textContent = 'score: ' + score;
+        overlay.classList.add('show');
+        return;
+      }
+
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        scoreEl.textContent = String(score);
+        food = randomFood();
+        tickMs = Math.max(70, tickMs - 3);
+      } else {
+        snake.pop();
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = '#030503';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ff5f5f';
+      ctx.fillRect(food.x * cellSize + 2, food.y * cellSize + 2, cellSize - 4, cellSize - 4);
+
+      snake.forEach((s, i) => {
+        ctx.fillStyle = i === 0 ? '#eafff2' : '#3ddc84';
+        ctx.fillRect(s.x * cellSize + 1, s.y * cellSize + 1, cellSize - 2, cellSize - 2);
+      });
+    }
+
+    function loop() {
+      if (!alive) return;
+      step();
+      if (alive) draw();
+      loopHandle = setTimeout(loop, tickMs);
+    }
+
+    // --- controls ---
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') setDir(0, -1);
+      if (e.key === 'ArrowDown') setDir(0, 1);
+      if (e.key === 'ArrowLeft') setDir(-1, 0);
+      if (e.key === 'ArrowRight') setDir(1, 0);
+    });
+
+    let touchStartX = 0, touchStartY = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        setDir(dx > 0 ? 1 : -1, 0);
+      } else {
+        setDir(0, dy > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    restartBtn.addEventListener('click', reset);
+    window.addEventListener('resize', resize);
+
+    reset();
+    resize();
+  </script>
+</body>
+</html>
