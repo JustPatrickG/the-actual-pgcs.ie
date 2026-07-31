@@ -12,7 +12,7 @@
  */
 function growBrandTitle(titleEl, onDone) {
   const FULL = 'Leinster Media';
-  const ANCHOR_INDICES = [0, 1, 3, 12]; // P, G, C, S
+  const ANCHOR_INDICES = [0, 1, 10]; // P, G, C, S
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   titleEl.textContent = '';
