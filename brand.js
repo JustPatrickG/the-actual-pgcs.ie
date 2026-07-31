@@ -1,18 +1,17 @@
 /**
- * Brand title growth animation, shared across all PGCS pages.
+ * Brand title growth animation, shared across all LM pages.
  * Same technique as patrickgordon.ie: characters are hidden (0 width) until
  * revealed, growing outward from anchor letters that are visible from the
  * start — so the "growth" is one continuous animation, not a jump/swap.
  *
- * Target string: "PG Creative Studio" (no ".ie" anywhere).
- * Anchors: P, G, C, S — the first letters of each word, i.e. the initials
- * that are already visible at the very start and read as "PGCS".
- * Everything else (the rest of "reative" and "tudio", plus the spaces)
- * grows outward from those four letters.
+ * Target string: "Leinster Media".
+ * Anchors: L, M — the first letters of each word, i.e. the initials
+ * that are already visible at the very start and read as "LM".
+ * Everything else grows outward from those two letters.
  */
 function growBrandTitle(titleEl, onDone) {
   const FULL = 'Leinster Media';
-  const ANCHOR_INDICES = [0, 1, 10]; // P, G, C, S
+  const ANCHOR_INDICES =; // 'L' (index 0) and 'M' (index 9)
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   titleEl.textContent = '';
@@ -47,7 +46,7 @@ function growBrandTitle(titleEl, onDone) {
   const orderedGroups = [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([, idxs]) => idxs);
   const byIndex = new Map(spans.map((s) => [s.index, s.span]));
 
-  const holdOnPGCS = 1400; // clear pause reading "PGCS" before anything moves
+  const holdOnLM = 1400; // clear pause reading "LM" before anything moves
   const stagger = 20; // fast, tight succession once it starts — reads as a snap
 
   setTimeout(() => {
@@ -60,8 +59,8 @@ function growBrandTitle(titleEl, onDone) {
         });
       }, i * stagger);
     });
-  }, holdOnPGCS);
+  }, holdOnLM);
 
-  const totalDelay = holdOnPGCS + orderedGroups.length * stagger + 260;
+  const totalDelay = holdOnLM + orderedGroups.length * stagger + 260;
   setTimeout(onDone, totalDelay);
 }
