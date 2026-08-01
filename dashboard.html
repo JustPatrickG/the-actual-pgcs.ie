@@ -212,13 +212,23 @@ hr{border:none;border-top:1px solid var(--bdr);margin:12px 0}
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
 
+/* ── BOTTOM NAV (mobile) ── */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sur);border-top:1px solid var(--bdr);z-index:50}
+.bot-nav-inner{display:flex;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,16px)}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--sub);font:500 10px var(--fn);cursor:pointer;transition:color .1s;-webkit-tap-highlight-color:transparent}
+.bn.on{color:var(--ac)}
+.bn-ico{font-size:20px;line-height:1}
+
 @media(max-width:860px){.kpis{grid-template-columns:1fr 1fr}.g2,.fg2,.fg3{grid-template-columns:1fr}.date-strip{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){
   .side{display:none}
+  .bot-nav{display:block}
   .house-dates{display:none}
   .kpis{grid-template-columns:1fr 1fr}
-  .content{padding:14px}
+  .content{padding:14px;padding-bottom:calc(70px + env(safe-area-inset-bottom,16px))}
   .topbar{padding:0 14px}
+  .shell{flex-direction:column}
+  .main{height:100dvh}
 }
 </style>
 </head>
@@ -525,7 +535,7 @@ if (localStorage.getItem('lm_gh_token')) {
 const GH_USER  = 'JustPatrickG';
 const GH_REPO  = 'dashboard-data';
 const GH_FILE  = 'db.json';
-const PASSWORD = '174thePark';   // ← change this to whatever you want
+const PASSWORD = '174thePark';
 const getToken = () => localStorage.getItem('lm_gh_token') || '';
 
 /* ── AUTH ── */
@@ -713,9 +723,13 @@ function netOf(c) { return (c.finances||[]).reduce((a,f) => f.type==='income' ? 
 function go(page, a, b) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.sn').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.bn').forEach(s => s.classList.remove('on'));
   document.getElementById('pg-'+page).classList.add('on');
-  const sn = document.querySelector(`.sn[data-p="${{client:'clients',house:'clients',overview:'overview'}[page]||page}"]`);
+  const navPage = {client:'clients',house:'clients',overview:'overview'}[page]||page;
+  const sn = document.querySelector(`.sn[data-p="${navPage}"]`);
   if (sn) sn.classList.add('on');
+  const bn = document.querySelector(`.bn[data-p="${navPage}"]`);
+  if (bn) bn.classList.add('on');
 
   const ttl = document.getElementById('tb-ttl');
   const bdg = document.getElementById('tb-badge');
@@ -1309,5 +1323,16 @@ document.addEventListener('keydown', e => {
   }
 });
 </script>
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bot-nav">
+  <div class="bot-nav-inner">
+    <button class="bn on" data-p="overview" onclick="go('overview')"><span class="bn-ico">▦</span>Home</button>
+    <button class="bn" data-p="clients" onclick="go('clients')"><span class="bn-ico">◎</span>Clients</button>
+    <button class="bn" data-p="schedule" onclick="go('schedule')"><span class="bn-ico">◫</span>Schedule</button>
+    <button class="bn" data-p="editors" onclick="go('editors')"><span class="bn-ico">✎</span>Editors</button>
+    <button class="bn" data-p="finances" onclick="go('finances')"><span class="bn-ico">◈</span>Finances</button>
+  </div>
+</nav>
+
 </body>
 </html>
