@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Leinster Media</title>
-  <meta name="description" content="Leinster Media" />
+  <meta name="description" content="Short-form video and paid lead generation for estate agents across Leinster." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22black%22/><text x=%2250%22 y=%2265%22 font-size=%2260%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22monospace%22>lm</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,10 +17,9 @@
     <h1 class="title" id="title">Leinster Media</h1>
 
     <nav class="menu" id="menu" aria-label="Site navigation">
-      <a class="menu-item" href="socials.html">socials</a>
+      <a class="menu-item" href="packages.html">packages</a>
       <a class="menu-item" href="results.html">results</a>
       <a class="menu-item" href="contact.html">contact</a>
-      <a class="menu-item" href="patrick.html">patrick</a>
     </nav>
   </main>
 
@@ -46,14 +45,11 @@
       }, 300);
     });
 
-    // --- secret: double-tap the title once it's settled ---
     function armSecretTap() {
       let lastTap = 0;
       title.addEventListener('click', () => {
         const now = Date.now();
-        if (now - lastTap < 400) {
-          window.location.href = 'secret.html';
-        }
+        if (now - lastTap < 400) window.location.href = 'dashboard.html';
         lastTap = now;
       });
     }
