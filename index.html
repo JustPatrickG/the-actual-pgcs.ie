@@ -13,6 +13,12 @@
 </head>
 <body>
 
+  <!-- Video background (hidden until animation completes) -->
+  <div class="video-bg" id="videoBg">
+    <video id="bgVideo" autoplay muted loop playsinline></video>
+    <div class="video-overlay"></div>
+  </div>
+
   <main class="screen" id="screen">
     <h1 class="title" id="title">Leinster Media</h1>
 
@@ -29,6 +35,13 @@
     const title = document.getElementById('title');
     const menu = document.getElementById('menu');
     const menuItems = document.querySelectorAll('#menu .menu-item');
+    const videoBg = document.getElementById('videoBg');
+    const bgVideo = document.getElementById('bgVideo');
+
+    // Pick correct video for screen size
+    const isMobile = window.innerWidth < 640;
+    bgVideo.src = isMobile ? 'reel-portrait.mp4' : 'reel-landscape.mp4';
+    bgVideo.load();
 
     screenEl.classList.add('show');
 
@@ -36,6 +49,13 @@
       setTimeout(() => {
         title.classList.add('rise');
         setTimeout(() => {
+          // Fade in video background
+          bgVideo.play().catch(() => {});
+          videoBg.classList.add('show');
+
+          // Fade screen background to transparent so video shows through
+          screenEl.classList.add('video-mode');
+
           menu.style.opacity = '1';
           menuItems.forEach((item, i) => {
             setTimeout(() => item.classList.add('show'), i * 130);
